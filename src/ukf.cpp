@@ -149,23 +149,21 @@ void UKF::Prediction(double delta_t) {
    */
 
   // create augmented mean vector
-  VectorXd x_aug = VectorXd(7);
+  VectorXd x_aug = VectorXd(n_aug_);
   // create augmented state covariance
-  MatrixXd P_aug = MatrixXd(7, 7);
+  MatrixXd P_aug = MatrixXd::Zero(n_aug_, n_aug_);
+  MatrixXd Xsig_aug = Eigen::MatrixXd::Zero(n_aug_, n_aug_ * 2 + 1);
 
   // create augmented mean state
   x_aug << x_, 0, 0;
   // create augmented covariance matrix
   P_aug.block(0, 0, 5, 5) = P_;
-  P_aug.block(0, 5, 2, 2) = MatrixXd::Zero(2, 2);
-  P_aug.block(5, 0, 2, 2) = MatrixXd::Zero(2, 2);
   P_aug.block(5, 5, 2, 2) = Q_;
   // calculate square root of P
   MatrixXd A = P_aug.llt().matrixL();
 
   // calculate sigma points
   // set first column of sigma point matrix
-  MatrixXd Xsig_aug = Eigen::MatrixXd::Zero(n_aug_, n_aug_ * 2 + 1);
   Xsig_aug.col(0) = x_aug;
   // set remaining sigma points
   for (int i = 0; i < n_aug_; ++i) {
@@ -212,17 +210,11 @@ void UKF::Prediction(double delta_t) {
 
   P_ = (centered.array().rowwise() * weights_.transpose().array()).matrix() *
        centered.transpose();
-
-  std::cout << "Predicted x: \n" << x_ << "\n";
-  std::cout << "Predicted P: \n" << P_ << "\n";
-
-  // int a;
-  // std::cin >> a;
 }
 
 void UKF::UpdateLidar(MeasurementPackage meas_package) {
   /**
-   * TODO: Complete this function! Use lidar data to update the belief
+   * DONE: Complete this function! Use lidar data to update the belief
    * about the object's position. Modify the state vector, x_, and
    * covariance, P_.
    * You can also calculate the lidar NIS, if desired.
@@ -231,6 +223,7 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
   MatrixXd z_pred = H_las_ * x_;
   VectorXd z = meas_package.raw_measurements_; // 2 rows
 
+  // calculate K matrix
   MatrixXd Ht = H_las_.transpose();
   MatrixXd S = H_las_ * P_ * Ht + R_las_;
   MatrixXd Si = S.inverse();
@@ -242,7 +235,7 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
 
 void UKF::UpdateRadar(MeasurementPackage meas_package) {
   /**
-   * TODO: Complete this function! Use radar data to update the belief
+   * DONE: Complete this function! Use radar data to update the belief
    * about the object's position. Modify the state vector, x_, and
    * covariance, P_.
    * You can also calculate the radar NIS, if desired.
