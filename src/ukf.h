@@ -97,6 +97,9 @@ class UKF {
   double lambda_;
 
   Eigen::MatrixXd Q_;
+  Eigen::MatrixXd R_rad_;
+  Eigen::MatrixXd R_las_;
+  Eigen::MatrixXd H_las_;
 };
 
 #endif  // UKF_H
